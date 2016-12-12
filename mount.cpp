@@ -225,12 +225,20 @@ void Mount::MountConfigDialogPane::OnXAlgorithmSelected(wxCommandEvent& evt)
 
 void Mount::MountConfigDialogPane::OnYAlgorithmSelected(wxCommandEvent& evt)
 {
-    if (m_pMount->m_pYGuideAlgorithm->Algorithm() == evt.GetSelection())
+    // this hack is necessary to not show "Gaussian Process" as option for
+    // the declination guiding. If there is a better way, please apply it!
+    int selection = evt.GetSelection();
+    if (selection == 5)
+        selection = 6; // adjust the value due to "Gaussian Process" not available for Dec
+
+    // if (m_pMount->m_pYGuideAlgorithm->Algorithm() == evt.GetSelection())
+    if (m_pMount->m_pYGuideAlgorithm->Algorithm() == selection) // hack!
         return;
 
     ConfigDialogPane *oldpane = m_pYGuideAlgorithmConfigDialogPane;
     oldpane->Clear(true);
-    m_pMount->SetYGuideAlgorithm(m_pYGuideAlgorithmChoice->GetSelection());
+    // m_pMount->SetYGuideAlgorithm(m_pYGuideAlgorithmChoice->GetSelection());
+    m_pMount->SetYGuideAlgorithm(selection); // hack!
     ConfigDialogPane *newpane = GetGuideAlgoDialogPane(m_pMount->m_pYGuideAlgorithm, m_pParent);
     m_pDecBox->Replace(oldpane, newpane);
     m_pYGuideAlgorithmConfigDialogPane = newpane;
