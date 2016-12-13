@@ -159,9 +159,9 @@ void Mount::MountConfigDialogPane::LayoutControls(wxPanel *pParent, BrainCtrlIdM
 
         wxString yAlgorithms[] =
         {
-            _("None"), _("Hysteresis"), _("Lowpass"), _("Lowpass2"), _("Resist Switch"),
+            _("Identity"), _("Hysteresis"), _("Lowpass"), _("Lowpass2"), _("Resist Switch"),
 #if defined(MPIIS_GAUSSIAN_PROCESS_GUIDING_ENABLED__)
-            _("Trimmed Mean"),
+            _("Gaussian Process"), _("Trimmed Mean"),
 #endif
         };
         width = StringArrayWidth(yAlgorithms, WXSIZEOF(yAlgorithms));
@@ -225,20 +225,12 @@ void Mount::MountConfigDialogPane::OnXAlgorithmSelected(wxCommandEvent& evt)
 
 void Mount::MountConfigDialogPane::OnYAlgorithmSelected(wxCommandEvent& evt)
 {
-    // this hack is necessary to not show "Gaussian Process" as option for
-    // the declination guiding. If there is a better way, please apply it!
-    int selection = evt.GetSelection();
-    if (selection == 5)
-        selection = 6; // adjust the value due to "Gaussian Process" not available for Dec
-
-    // if (m_pMount->m_pYGuideAlgorithm->Algorithm() == evt.GetSelection())
-    if (m_pMount->m_pYGuideAlgorithm->Algorithm() == selection) // hack!
+    if (m_pMount->m_pYGuideAlgorithm->Algorithm() == evt.GetSelection())
         return;
 
     ConfigDialogPane *oldpane = m_pYGuideAlgorithmConfigDialogPane;
     oldpane->Clear(true);
-    // m_pMount->SetYGuideAlgorithm(m_pYGuideAlgorithmChoice->GetSelection());
-    m_pMount->SetYGuideAlgorithm(selection); // hack!
+    m_pMount->SetYGuideAlgorithm(m_pYGuideAlgorithmChoice->GetSelection());
     ConfigDialogPane *newpane = GetGuideAlgoDialogPane(m_pMount->m_pYGuideAlgorithm, m_pParent);
     m_pDecBox->Replace(oldpane, newpane);
     m_pYGuideAlgorithmConfigDialogPane = newpane;
