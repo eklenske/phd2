@@ -75,6 +75,8 @@ class GuideAlgorithmGaussianProcess::GuideAlgorithmGaussianProcessDialogPane : p
 
     wxCheckBox       *m_checkboxExpertMode;
 
+    wxStaticBoxSizer *m_pExpertPage;
+
 public:
     GuideAlgorithmGaussianProcessDialogPane(wxWindow *pParent, GuideAlgorithmGaussianProcess *pGuideAlgorithm)
       : ConfigDialogPane(_("Gaussian Process Guide Algorithm"),pParent)
@@ -183,11 +185,16 @@ public:
 
         m_checkboxExpertMode = new wxCheckBox(pParent, wxID_ANY, _T(""));
         pParent->Connect(m_checkboxExpertMode->GetId(), wxEVT_CHECKBOX, wxCommandEventHandler(GuideAlgorithmGaussianProcess::GuideAlgorithmGaussianProcessDialogPane::EnableExpertMode), 0, this);
-        DoAdd(_("Expert mode"), m_checkboxExpertMode, _("This is just for debugging and disabled by default"));
+        DoAdd(_("Show expert options"), m_checkboxExpertMode, _("This is just for debugging and disabled by default"));
 
-        m_checkboxDarkMode = new wxCheckBox(pParent, wxID_ANY, "Dark guiding mode");
-        m_checkboxDarkMode->SetToolTip("This is just for debugging and disabled by default");
-        DoAdd(m_checkboxDarkMode);
+        // create the expert options page
+        m_pExpertPage = new wxStaticBoxSizer(wxVERTICAL, pParent);
+
+        m_checkboxDarkMode = new wxCheckBox(pParent, wxID_ANY, "");
+        m_pExpertPage->Add(MakeLabeledControl(_("Dark guiding mode"), m_checkboxDarkMode, _("This is just for debugging and disabled by default")));
+
+        // add expert options to the main options
+        DoAdd(m_pExpertPage);
     }
 
     virtual ~GuideAlgorithmGaussianProcessDialogPane(void)
@@ -220,9 +227,7 @@ public:
 
         m_checkboxComputePeriod->SetValue(m_pGuideAlgorithm->GetBoolComputePeriod());
 
-        if ( !m_pGuideAlgorithm->GetExpertMode() ) {
-            m_checkboxDarkMode->Hide();
-        }
+        m_pExpertPage->ShowItems(m_pGuideAlgorithm->GetExpertMode());
     }
 
     // Set the parameters chosen in the GUI in the actual guiding algorithm
@@ -246,14 +251,13 @@ public:
         m_pGuideAlgorithm->SetGPHyperparameters(hyperparameters);
         m_pGuideAlgorithm->SetPredictionGain(m_pPredictionGain->GetValue());
         m_pGuideAlgorithm->SetBoolComputePeriod(m_checkboxComputePeriod->GetValue());
+
+        m_pGuideAlgorithm->SetExpertMode(m_checkboxExpertMode->GetValue());
     }
 
     virtual void EnableExpertMode(wxCommandEvent& evt)
     {
-        if( evt.IsChecked() )
-            m_checkboxDarkMode->Show();
-        else
-            m_checkboxDarkMode->Hide();
+        m_pExpertPage->ShowItems(evt.IsChecked());
     }
 };
 
