@@ -1079,6 +1079,10 @@ double GuideAlgorithmGaussianProcess::result(double input)
     HandleSNR(pFrame->pGuider->SNR());
 
     parameters->control_signal_ = parameters->control_gain_*input; // start with proportional control
+    if (parameters->control_signal_ < parameters->min_move_)
+    {
+        parameters->control_signal_ = 0; // don't make small moves
+    }
 
     // check if we are allowed to use the GP
     if (parameters->min_points_for_inference_ > 0 &&
