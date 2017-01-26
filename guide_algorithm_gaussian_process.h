@@ -43,6 +43,7 @@
 #define GUIDE_GAUSSIAN_PROCESS
 
 #include "guide_algorithm.h"
+#include "gaussian_process_guider.h"
 
 #define GP_DEBUG_FILE_ 1
 
@@ -78,9 +79,12 @@ private:
     class GuideAlgorithmGaussianProcessDialogPane;
 
     /**
-     * Pointer to the guiding parameters of this instance.
+     * Pointer to the class that does the actual work.
      */
-    gp_guide_parameters* parameters;
+    GaussianProcessGuider* GPG;
+
+    bool expert_mode_;
+    bool dark_tracking_mode_;
 
     /**
      * Stores the current time and creates a timestamp for the GP.

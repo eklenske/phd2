@@ -49,6 +49,7 @@ circular_buffer_data(CIRCULAR_BUFFER_SIZE)
 {
     circular_buffer_data.push_front(data_point()); // add first point
     circular_buffer_data[0].control = 0; // set first control to zero
+    gp_.enableExplicitTrend(); // enable the explicit basis function for the linear drift
     gp_.enableOutputProjection(output_covariance_function_); // for prediction
 }
 
@@ -237,11 +238,6 @@ double GaussianProcessGuider::PredictGearError(double prediction_location)
 
 double GaussianProcessGuider::result(double input, double SNR, double time_step)
 {
-    if (parameters.dark_tracking_mode_ == true)
-    {
-        return deduceResult(time_step);
-    }
-
     /*
      * Dithering behaves differently from pausing. During dithering, the mount
      * is moved and thus we can assume that we applied the perfect control, but

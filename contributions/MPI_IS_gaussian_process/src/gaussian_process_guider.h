@@ -91,7 +91,6 @@ public:
         int points_for_approximation_;
 
         bool compute_period_;
-        bool dark_tracking_mode_;
 
         double SE0KLengthScale_;
         double SE0KSignalVariance_;
@@ -109,7 +108,6 @@ public:
         min_points_for_period_computation_(0),
         points_for_approximation_(0),
         compute_period_(false),
-        dark_tracking_mode_(false),
         SE0KLengthScale_(0.0),
         SE0KSignalVariance_(0.0),
         PKLengthScale_(0.0),
@@ -207,14 +205,11 @@ public:
     bool GetBoolComputePeriod() const;
     bool SetBoolComputePeriod(bool);
 
-    std::vector<double> GetGPHyperparameters() const;
-    bool SetGPHyperparameters(std::vector<double> const& hyperparameters);
+    Eigen::VectorXd GetGPHyperparameters() const;
+    bool SetGPHyperparameters(Eigen::VectorXd const& hyperparameters);
 
     double GetPredictionGain() const;
     bool SetPredictionGain(double);
-
-    bool GetDarkTracking();
-    bool SetDarkTracking(bool value);
 
     bool GetExpertMode();
     bool SetExpertMode(bool value);
