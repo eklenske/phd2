@@ -197,22 +197,19 @@ public:
     bool SetNumPointsInference(int num_points_inference);
 
     int GetNumPointsPeriodComputation() const;
-    bool SetNumPointsPeriodComputation(int);
+    bool SetNumPointsPeriodComputation(int num_points);
 
     int GetNumPointsForApproximation() const;
-    bool SetNumPointsForApproximation(int);
+    bool SetNumPointsForApproximation(int num_points);
 
     bool GetBoolComputePeriod() const;
-    bool SetBoolComputePeriod(bool);
+    bool SetBoolComputePeriod(bool active);
 
-    Eigen::VectorXd GetGPHyperparameters() const;
-    bool SetGPHyperparameters(Eigen::VectorXd const& hyperparameters);
+    std::vector< double > GetGPHyperparameters() const;
+    bool SetGPHyperparameters(const std::vector< double >& hyperparameters);
 
     double GetPredictionGain() const;
     bool SetPredictionGain(double);
-
-    bool GetExpertMode();
-    bool SetExpertMode(bool value);
 
     GaussianProcessGuider(guide_parameters parameters);
     ~GaussianProcessGuider();

@@ -496,3 +496,89 @@ void GaussianProcessGuider::GuidingDitherSettleDone(bool success)
         dither_steps_ = 0;
     }
 }
+
+double GaussianProcessGuider::GetControlGain(void) const
+{
+    return parameters.control_gain_;
+}
+
+bool GaussianProcessGuider::SetControlGain(double control_gain)
+{
+    parameters.control_gain_ = control_gain;
+    return false;
+}
+
+bool GaussianProcessGuider::GetBoolComputePeriod() const {
+    return parameters.compute_period_;
+}
+
+bool GaussianProcessGuider::SetBoolComputePeriod(bool active) {
+    parameters.compute_period_ = active;
+    return false;
+}
+
+std::vector<double> GaussianProcessGuider::GetGPHyperparameters() const
+{
+    // since the GP class works in log space, we have to exp() the parameters first.
+    Eigen::VectorXd hyperparameters = gp_.getHyperParameters().array().exp();
+
+    // we need to map the Eigen::vector into a std::vector.
+    return std::vector<double>(hyperparameters.data(), // the first element is at the array address
+                               hyperparameters.data() + 8); // 8 parameters, therefore the last is at position 7
+}
+
+bool GaussianProcessGuider::SetGPHyperparameters(std::vector<double> const &hyperparameters) {
+    Eigen::VectorXd hyperparameters_eig = Eigen::VectorXd::Map(&hyperparameters[0], hyperparameters.size());
+
+
+}
+
+double GaussianProcessGuider::GetMinMove() const {
+    return parameters.min_move_;
+}
+
+bool GaussianProcessGuider::SetMinMove(double min_move) {
+    parameters.min_move_ = min_move;
+    return false;
+}
+
+int GaussianProcessGuider::GetNumPointsForApproximation() const {
+    return parameters.points_for_approximation_;
+}
+
+bool GaussianProcessGuider::SetNumPointsForApproximation(int num_points) {
+    parameters.points_for_approximation_ = num_points;
+    return false;
+}
+
+int GaussianProcessGuider::GetNumPointsInference() const {
+    return parameters.min_points_for_period_computation_;
+}
+
+bool GaussianProcessGuider::SetNumPointsInference(int num_points_inference) {
+    parameters.min_points_for_inference_ = num_points_inference;
+    return false;
+}
+
+int GaussianProcessGuider::GetNumPointsPeriodComputation() const {
+    return parameters.min_points_for_period_computation_;
+}
+
+bool GaussianProcessGuider::SetNumPointsPeriodComputation(int num_points) {
+    parameters.min_points_for_period_computation_ = num_points;
+    return false;
+}
+
+double GaussianProcessGuider::GetPredictionGain() const {
+    return parameters.prediction_gain_;
+}
+
+bool GaussianProcessGuider::SetPredictionGain(double prediction_gain) {
+    parameters.prediction_gain_ = prediction_gain;
+    return false;
+}
+
+
+
+
+

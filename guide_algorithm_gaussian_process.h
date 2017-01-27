@@ -147,7 +147,7 @@ protected:
     bool SetBoolComputePeriod(bool);
 
     std::vector<double> GetGPHyperparameters() const;
-    bool SetGPHyperparameters(std::vector<double> const& hyperparameters);
+    bool SetGPHyperparameters(std::vector< double > hyperparameters);
 
     double GetPredictionGain() const;
     bool SetPredictionGain(double);

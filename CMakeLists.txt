@@ -26,7 +26,7 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# File created by Raffi Enficiaud 
+# File created by Raffi Enficiaud
 
 cmake_minimum_required(VERSION 2.8.11)
 
@@ -76,11 +76,11 @@ option(GUIDING_GAUSSIAN_PROCESS "Includes the Gaussian Process guiding algorithm
 project(phd2)
 enable_testing()
 
-
-
 # root directory of the project
 set(PHD_PROJECT_ROOT_DIR ${CMAKE_SOURCE_DIR})
 set(phd_src_dir ${PHD_PROJECT_ROOT_DIR})
+
+include_directories(${phd_src_dir})
 
 
 # build type, by default to release (with optimisations)
@@ -708,7 +708,7 @@ target_link_libraries(phd2 ${PHD_LINK_EXTERNAL})
 
 # option configurations parts
 if(${GUIDING_GAUSSIAN_PROCESS})
-  target_link_libraries(phd2 MPIIS_GP)
+  target_link_libraries(phd2 MPIIS_GP GPGuider)
   target_compile_definitions(phd2 PRIVATE "-DMPIIS_GAUSSIAN_PROCESS_GUIDING_ENABLED__")
 endif()
 

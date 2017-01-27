@@ -296,7 +296,7 @@ static const double DefaultPredictionGain                  = 1.0; // amount of G
 static const bool   DefaultComputePeriod                 = true;
 
 GuideAlgorithmGaussianProcess::GuideAlgorithmGaussianProcess(Mount *pMount, GuideAxis axis)
-    : GuideAlgorithm(pMount, axis), parameters(0)
+    : GuideAlgorithm(pMount, axis), GPG(0)
 {
     // create guide parameters, load default values at first
     GaussianProcessGuider::guide_parameters parameters;
@@ -353,7 +353,7 @@ GuideAlgorithmGaussianProcess::GuideAlgorithmGaussianProcess(Mount *pMount, Guid
     bool compute_period = pConfig->Profile.GetBoolean(configPath + "/gp_compute_period", DefaultComputePeriod);
     SetBoolComputePeriod(compute_period);
 
-    parameters.dark_tracking_mode_ = false; // dark tracking mode ignores measurements
+    dark_tracking_mode_ = false; // dark tracking mode ignores measurements
     SetExpertMode(false); // expert mode exposes the GP hyperparameters
     reset();
 }
@@ -494,12 +494,11 @@ bool GuideAlgorithmGaussianProcess::SetNumPointsForApproximation(int num_points)
     return error;
 }
 
-bool GuideAlgorithmGaussianProcess::SetGPHyperparameters(std::vector<double> const &hyperparameters)
+bool GuideAlgorithmGaussianProcess::SetGPHyperparameters(std::vector<double> hyperparameters)
 {
     if(hyperparameters.size() != 8)
         return false;
 
-    Eigen::VectorXd hyperparameters_eig = Eigen::VectorXd::Map(&hyperparameters[0], hyperparameters.size());
     bool error = false;
 
     // we do this check in sequence: maybe there would be additional checks on this later.
@@ -507,7 +506,7 @@ bool GuideAlgorithmGaussianProcess::SetGPHyperparameters(std::vector<double> con
     // gaussian process noise (dirac kernel)
     try
     {
-        if (hyperparameters_eig(0) < 0)
+        if (hyperparameters[0] < 0)
         {
             throw ERROR_INFO("invalid noise for dirac kernel");
         }
@@ -516,15 +515,15 @@ bool GuideAlgorithmGaussianProcess::SetGPHyperparameters(std::vector<double> con
     {
         POSSIBLY_UNUSED(Msg);
         error = true;
-        hyperparameters_eig(0) = DefaultGaussianNoiseHyperparameter;
+        hyperparameters[0] = DefaultGaussianNoiseHyperparameter;
     }
 
-    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_gaussian_noise", hyperparameters_eig(0));
+    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_gaussian_noise", hyperparameters[0]);
 
     // length scale short SE kernel
     try
     {
-      if (hyperparameters_eig(1) < 0)
+      if (hyperparameters[1] < 0)
       {
         throw ERROR_INFO("invalid length scale for short SE kernel");
       }
@@ -533,15 +532,15 @@ bool GuideAlgorithmGaussianProcess::SetGPHyperparameters(std::vector<double> con
     {
       POSSIBLY_UNUSED(Msg);
       error = true;
-      hyperparameters_eig(1) = DefaultLengthScaleSE0Ker;
+      hyperparameters[1] = DefaultLengthScaleSE0Ker;
     }
 
-    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_length_scale_se0_kern", hyperparameters_eig(1));
+    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_length_scale_se0_kern", hyperparameters[1]);
 
     // signal variance short SE kernel
     try
     {
-      if (hyperparameters_eig(2) < 0)
+      if (hyperparameters[2] < 0)
       {
         throw ERROR_INFO("invalid signal variance for the short SE kernel");
       }
@@ -550,15 +549,15 @@ bool GuideAlgorithmGaussianProcess::SetGPHyperparameters(std::vector<double> con
     {
       POSSIBLY_UNUSED(Msg);
       error = true;
-      hyperparameters_eig(2) = DefaultSignalVarianceSE0Ker;
+      hyperparameters[2] = DefaultSignalVarianceSE0Ker;
     }
 
-    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_sigvar_se0_kern", hyperparameters_eig(2));
+    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_sigvar_se0_kern", hyperparameters[2]);
 
     // length scale periodic kernel
     try
     {
-        if (hyperparameters_eig(3) < 0)
+        if (hyperparameters[3] < 0)
         {
             throw ERROR_INFO("invalid length scale for periodic kernel");
         }
@@ -567,15 +566,15 @@ bool GuideAlgorithmGaussianProcess::SetGPHyperparameters(std::vector<double> con
     {
         POSSIBLY_UNUSED(Msg);
         error = true;
-        hyperparameters_eig(3) = DefaultLengthScalePerKer;
+        hyperparameters[3] = DefaultLengthScalePerKer;
     }
 
-    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_length_scale_per_kern", hyperparameters_eig(3));
+    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_length_scale_per_kern", hyperparameters[3]);
 
     // signal variance periodic kernel
     try
     {
-        if (hyperparameters_eig(4) < 0)
+        if (hyperparameters[4] < 0)
         {
             throw ERROR_INFO("invalid signal variance for the periodic kernel");
         }
@@ -584,16 +583,16 @@ bool GuideAlgorithmGaussianProcess::SetGPHyperparameters(std::vector<double> con
     {
         POSSIBLY_UNUSED(Msg);
         error = true;
-        hyperparameters_eig(4) = DefaultSignalVariancePerKer;
+        hyperparameters[4] = DefaultSignalVariancePerKer;
     }
 
-    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_sigvar_per_kern", hyperparameters_eig(4));
+    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_sigvar_per_kern", hyperparameters[4]);
 
 
     // length scale long SE kernel
     try
     {
-        if (hyperparameters_eig(5) < 0)
+        if (hyperparameters[5] < 0)
         {
             throw ERROR_INFO("invalid length scale for SE kernel");
         }
@@ -602,15 +601,15 @@ bool GuideAlgorithmGaussianProcess::SetGPHyperparameters(std::vector<double> con
     {
         POSSIBLY_UNUSED(Msg);
         error = true;
-        hyperparameters_eig(5) = DefaultLengthScaleSE1Ker;
+        hyperparameters[5] = DefaultLengthScaleSE1Ker;
     }
 
-    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_length_scale_se1_kern", hyperparameters_eig(5));
+    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_length_scale_se1_kern", hyperparameters[5]);
 
     // signal variance SE kernel
     try
     {
-        if (hyperparameters_eig(6) < 0)
+        if (hyperparameters[6] < 0)
         {
             throw ERROR_INFO("invalid signal variance for the SE kernel");
         }
@@ -619,15 +618,15 @@ bool GuideAlgorithmGaussianProcess::SetGPHyperparameters(std::vector<double> con
     {
         POSSIBLY_UNUSED(Msg);
         error = true;
-        hyperparameters_eig(6) = DefaultSignalVarianceSE1Ker;
+        hyperparameters[6] = DefaultSignalVarianceSE1Ker;
     }
 
-    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_sigvar_se1_kern", hyperparameters_eig(6));
+    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_sigvar_se1_kern", hyperparameters[6]);
 
     // period length periodic kernel
     try
     {
-      if (hyperparameters_eig(7) < 0)
+      if (hyperparameters[7] < 0)
       {
         throw ERROR_INFO("invalid period length for periodic kernel");
       }
@@ -636,13 +635,12 @@ bool GuideAlgorithmGaussianProcess::SetGPHyperparameters(std::vector<double> con
     {
       POSSIBLY_UNUSED(Msg);
       error = true;
-      hyperparameters_eig(7) = DefaultPeriodLengthPerKer;
+      hyperparameters[7] = DefaultPeriodLengthPerKer;
     }
 
-    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_period_per_kern", hyperparameters_eig(7));
+    pConfig->Profile.SetDouble(GetConfigPath() + "/gp_period_per_kern", hyperparameters[7]);
 
-    // note that the GP class works in log space! Thus, we have to convert the parameters to log.
-    GPG.SetGPHyperparameters(hyperparameters_eig.array().log());
+    GPG->SetGPHyperparameters(hyperparameters);
     return error;
 }
 
@@ -705,12 +703,7 @@ int GuideAlgorithmGaussianProcess::GetNumPointsForApproximation() const
 
 std::vector<double> GuideAlgorithmGaussianProcess::GetGPHyperparameters() const
 {
-    // since the GP class works in log space, we have to exp() the parameters first.
-    Eigen::VectorXd hyperparameters = GPG->GetGPHyperparameters().array().exp();
-
-    // we need to map the Eigen::vector into a std::vector.
-    return std::vector<double>(hyperparameters.data(), // the first element is at the array address
-                               hyperparameters.data() + 8); // 8 parameters, therefore the last is at position 7
+    return GPG->GetGPHyperparameters();
 }
 
 double GuideAlgorithmGaussianProcess::GetPredictionGain() const
@@ -720,17 +713,17 @@ double GuideAlgorithmGaussianProcess::GetPredictionGain() const
 
 bool GuideAlgorithmGaussianProcess::GetBoolComputePeriod() const
 {
-    return GPG.GetBoolComputePeriod();
+    return GPG->GetBoolComputePeriod();
 }
 
 bool GuideAlgorithmGaussianProcess::GetDarkTracking()
 {
-    return GPG->GetDarkTracking();
+    return dark_tracking_mode_;
 }
 
 bool GuideAlgorithmGaussianProcess::SetDarkTracking(bool value)
 {
-    GPG->SetDarkTracking(value);
+    dark_tracking_mode_ = value;
     return false;
 }
 
@@ -762,17 +755,17 @@ wxString GuideAlgorithmGaussianProcess::GetSettingsSummary()
       "FFT called after = %.3d points\n"
     ;
 
-    Eigen::VectorXd hyperparameters = GetGPHyperparameters();
+    std::vector<double> hyperparameters = GetGPHyperparameters();
 
     return wxString::Format(
       format,
       GetControlGain(),
       GetPredictionGain(),
       GetMinMove(),
-      std::exp(hyperparameters(0)), std::exp(hyperparameters(1)),
-      std::exp(hyperparameters(2)), std::exp(hyperparameters(3)),
-      std::exp(hyperparameters(4)), std::exp(hyperparameters(5)),
-      std::exp(hyperparameters(6)), std::exp(hyperparameters(7)),
+      std::exp(hyperparameters[0]), std::exp(hyperparameters[1]),
+      std::exp(hyperparameters[2]), std::exp(hyperparameters[3]),
+      std::exp(hyperparameters[4]), std::exp(hyperparameters[5]),
+      std::exp(hyperparameters[6]), std::exp(hyperparameters[7]),
       GPG->GetNumPointsPeriodComputation());
 }
 
