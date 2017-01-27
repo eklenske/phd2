@@ -81,7 +81,7 @@ private:
     /**
      * Pointer to the class that does the actual work.
      */
-    GaussianProcessGuider* GPG;
+    GaussianProcessGuider* gpg_;
 
     bool expert_mode_;
     bool dark_tracking_mode_;

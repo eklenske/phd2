@@ -45,10 +45,10 @@ GaussianProcessGuider::GaussianProcessGuider(guide_parameters parameters) :
 parameters(parameters),
 time_start((double) std::clock() / CLOCKS_PER_SEC),
 gp_(covariance_function_),
-circular_buffer_data(CIRCULAR_BUFFER_SIZE)
+circular_buffer_data_(CIRCULAR_BUFFER_SIZE)
 {
-    circular_buffer_data.push_front(data_point()); // add first point
-    circular_buffer_data[0].control = 0; // set first control to zero
+    circular_buffer_data_.push_front(data_point()); // add first point
+    circular_buffer_data_[0].control = 0; // set first control to zero
     gp_.enableExplicitTrend(); // enable the explicit basis function for the linear drift
     gp_.enableOutputProjection(output_covariance_function_); // for prediction
 
@@ -124,10 +124,10 @@ void GaussianProcessGuider::UpdateGP()
     // transfer the data from the circular buffer to the Eigen::Vectors
     for(size_t i = 0; i < N-1; i++)
     {
-        sum_control += circular_buffer_data[i].control; // sum over the control signals
-        timestamps(i) = circular_buffer_data[i].timestamp;
-        measurements(i) = circular_buffer_data[i].measurement;
-        variances(i) = circular_buffer_data[i].variance;
+        sum_control += circular_buffer_data_[i].control; // sum over the control signals
+        timestamps(i) = circular_buffer_data_[i].timestamp;
+        measurements(i) = circular_buffer_data_[i].measurement;
+        variances(i) = circular_buffer_data_[i].variance;
         sum_controls(i) = sum_control; // store current accumulated control signal
     }
 
@@ -305,11 +305,11 @@ double GaussianProcessGuider::result(double input, double SNR, double time_step)
     // transfer the data from the circular buffer to the Eigen::Vectors
     for(size_t i = 0; i < N-1; i++)
     {
-        timestamps(i) = circular_buffer_data[i].timestamp;
-        measurements(i) = circular_buffer_data[i].measurement;
-        variances(i) = circular_buffer_data[i].variance;
-        controls(i) = circular_buffer_data[i].control;
-        sum_controls(i) = circular_buffer_data[i].control;
+        timestamps(i) = circular_buffer_data_[i].timestamp;
+        measurements(i) = circular_buffer_data_[i].measurement;
+        variances(i) = circular_buffer_data_[i].variance;
+        controls(i) = circular_buffer_data_[i].control;
+        sum_controls(i) = circular_buffer_data_[i].control;
         if(i > 0)
         {
             sum_controls(i) += sum_controls(i-1); // sum over the control signals
@@ -392,11 +392,11 @@ double GaussianProcessGuider::deduceResult(double time_step)
     // transfer the data from the circular buffer to the Eigen::Vectors
     for (size_t i = 0; i < N - 1; i++)
     {
-        timestamps(i) = circular_buffer_data[i].timestamp;
-        measurements(i) = circular_buffer_data[i].measurement;
-        variances(i) = circular_buffer_data[i].variance;
-        controls(i) = circular_buffer_data[i].control;
-        sum_controls(i) = circular_buffer_data[i].control;
+        timestamps(i) = circular_buffer_data_[i].timestamp;
+        measurements(i) = circular_buffer_data_[i].measurement;
+        variances(i) = circular_buffer_data_[i].variance;
+        controls(i) = circular_buffer_data_[i].control;
+        sum_controls(i) = circular_buffer_data_[i].control;
         if (i > 0)
         {
             sum_controls(i) += sum_controls(i - 1); // sum over the control signals

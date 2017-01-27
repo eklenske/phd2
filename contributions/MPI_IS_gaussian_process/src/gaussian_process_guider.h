@@ -134,7 +134,7 @@ private:
 
     bool dithering_active_;
 
-    circular_buffer<data_point> circular_buffer_data;
+    circular_buffer<data_point> circular_buffer_data_;
 
     covariance_functions::PeriodicSquareExponential2 covariance_function_; // for inference
     covariance_functions::PeriodicSquareExponential output_covariance_function_; // for prediction
@@ -270,29 +270,29 @@ public:
 
     data_point& get_last_point()
     {
-        return circular_buffer_data[circular_buffer_data.size() - 1];
+        return circular_buffer_data_[circular_buffer_data_.size() - 1];
     }
 
     data_point& get_second_last_point()
     {
-        return circular_buffer_data[circular_buffer_data.size() - 2];
+        return circular_buffer_data_[circular_buffer_data_.size() - 2];
     }
 
     size_t get_number_of_measurements() const
     {
-        return circular_buffer_data.size();
+        return circular_buffer_data_.size();
     }
 
     void add_one_point()
     {
-        circular_buffer_data.push_front(data_point());
+        circular_buffer_data_.push_front(data_point());
     }
 
     void clear()
     {
-        circular_buffer_data.clear();
-        circular_buffer_data.push_front(data_point()); // add first point
-        circular_buffer_data[0].control = 0; // set first control to zero
+        circular_buffer_data_.clear();
+        circular_buffer_data_.push_front(data_point()); // add first point
+        circular_buffer_data_[0].control = 0; // set first control to zero
         last_prediction_end_ = 0.0;
         gp_.clearData();
     }
