@@ -51,6 +51,17 @@ circular_buffer_data(CIRCULAR_BUFFER_SIZE)
     circular_buffer_data[0].control = 0; // set first control to zero
     gp_.enableExplicitTrend(); // enable the explicit basis function for the linear drift
     gp_.enableOutputProjection(output_covariance_function_); // for prediction
+
+    std::vector<double> hyperparameters;
+    hyperparameters.push_back(parameters.Noise_);
+    hyperparameters.push_back(parameters.SE0KLengthScale_);
+    hyperparameters.push_back(parameters.SE0KSignalVariance_);
+    hyperparameters.push_back(parameters.PKLengthScale_);
+    hyperparameters.push_back(parameters.PKPeriodLength_);
+    hyperparameters.push_back(parameters.PKSignalVariance_);
+    hyperparameters.push_back(parameters.SE1KLengthScale_);
+    hyperparameters.push_back(parameters.SE1KSignalVariance_);
+    SetGPHyperparameters(hyperparameters);
 }
 
 GaussianProcessGuider::~GaussianProcessGuider()
@@ -529,6 +540,9 @@ std::vector<double> GaussianProcessGuider::GetGPHyperparameters() const
 
 bool GaussianProcessGuider::SetGPHyperparameters(std::vector<double> const &hyperparameters) {
     Eigen::VectorXd hyperparameters_eig = Eigen::VectorXd::Map(&hyperparameters[0], hyperparameters.size());
+
+    // the GP works in log space, therefore we need to convert
+    gp_.setHyperParameters(hyperparameters_eig.array().log());
     return false;
 }
 
@@ -551,7 +565,7 @@ bool GaussianProcessGuider::SetNumPointsForApproximation(int num_points) {
 }
 
 int GaussianProcessGuider::GetNumPointsInference() const {
-    return parameters.min_points_for_period_computation_;
+    return parameters.min_points_for_inference_;
 }
 
 bool GaussianProcessGuider::SetNumPointsInference(int num_points_inference) {

@@ -44,30 +44,30 @@
 
 class GPGTest : public ::testing::Test
 {
+public:
     /**
      * this block is copied over from guide_algorithm_gaussian_process.cpp
      */
-    double DefaultControlGain                   = 0.8; // control gain
-    int    DefaultNumMinPointsForInference      = 25; // minimal number of points for doing the inference
-    double DefaultMinMove                       = 0.2;
+    static constexpr double DefaultControlGain                   = 0.8; // control gain
+    static constexpr int    DefaultNumMinPointsForInference      = 25; // minimal number of points for doing the inference
+    static constexpr double DefaultMinMove                       = 0.2;
 
-    double DefaultGaussianNoiseHyperparameter   = 1.0; // default Gaussian measurement noise
+    static constexpr double DefaultGaussianNoiseHyperparameter   = 1.0; // default Gaussian measurement noise
 
-    double DefaultLengthScaleSE0Ker             = 500.0; // length-scale of the long-range SE-kernel
-    double DefaultSignalVarianceSE0Ker          = 10.0; // signal variance of the long-range SE-kernel
-    double DefaultLengthScalePerKer             = 0.5; // length-scale of the periodic kernel
-    double DefaultPeriodLengthPerKer            = 500; // P_p, period-length of the periodic kernel
-    double DefaultSignalVariancePerKer          = 10.0; // signal variance of the periodic kernel
-    double DefaultLengthScaleSE1Ker             = 5.0; // length-scale of the short-range SE-kernel
-    double DefaultSignalVarianceSE1Ker          = 1.0; // signal variance of the short range SE-kernel
+    static constexpr double DefaultLengthScaleSE0Ker             = 500.0; // length-scale of the long-range SE-kernel
+    static constexpr double DefaultSignalVarianceSE0Ker          = 10.0; // signal variance of the long-range SE-kernel
+    static constexpr double DefaultLengthScalePerKer             = 0.5; // length-scale of the periodic kernel
+    static constexpr double DefaultPeriodLengthPerKer            = 500; // P_p, period-length of the periodic kernel
+    static constexpr double DefaultSignalVariancePerKer          = 10.0; // signal variance of the periodic kernel
+    static constexpr double DefaultLengthScaleSE1Ker             = 5.0; // length-scale of the short-range SE-kernel
+    static constexpr double DefaultSignalVarianceSE1Ker          = 1.0; // signal variance of the short range SE-kernel
 
-    int    DefaultNumMinPointsForPeriodComputation = 100; // minimal number of points for doing the period identification
-    int    DefaultNumPointsForApproximation        = 100; // number of points used in the GP approximation
-    double DefaultPredictionGain                  = 1.0; // amount of GP prediction to blend in
+    static constexpr int    DefaultNumMinPointsForPeriodComputation = 100; // minimal number of points for doing the period identification
+    static constexpr int    DefaultNumPointsForApproximation        = 100; // number of points used in the GP approximation
+    static constexpr double DefaultPredictionGain                  = 1.0; // amount of GP prediction to blend in
 
-    bool   DefaultComputePeriod                 = true;
+    static constexpr bool   DefaultComputePeriod                 = true;
 
-public:
     GaussianProcessGuider* GPG;
 
     GPGTest(): GPG(0)
@@ -76,6 +76,7 @@ public:
         parameters.control_gain_ = DefaultControlGain;
         parameters.min_points_for_inference_ = DefaultNumMinPointsForInference;
         parameters.min_move_ = DefaultMinMove;
+        parameters.Noise_ = DefaultGaussianNoiseHyperparameter;
         parameters.SE0KLengthScale_ = DefaultLengthScaleSE0Ker;
         parameters.SE0KSignalVariance_ = DefaultSignalVarianceSE0Ker;
         parameters.PKLengthScale_ = DefaultLengthScalePerKer;
@@ -97,7 +98,7 @@ public:
     }
 };
 
-TEST_F(GPGTest, min_move_test)
+TEST_F(GPGTest, simple_result_test)
 {
     double result = 0.0;
 
@@ -108,6 +109,27 @@ TEST_F(GPGTest, min_move_test)
     // for an empty dataset, result is equivalent to a P-controller
     result = GPG->result(1.0, 2.0, 3.0);
     EXPECT_NEAR(result, 0.8, 1e-6); // result should be measurement x control gain
+}
+
+TEST_F(GPGTest, parameters_test)
+{
+    EXPECT_NEAR(GPG->GetControlGain(), DefaultControlGain, 1e-6);
+    EXPECT_NEAR(GPG->GetNumPointsInference(), DefaultNumMinPointsForInference, 1e-6);
+    EXPECT_NEAR(GPG->GetMinMove(), DefaultMinMove, 1e-6);
+
+    std::vector<double> parameters = GPG->GetGPHyperparameters();
+    EXPECT_NEAR(parameters[1], DefaultLengthScaleSE0Ker, 1e-6);
+    EXPECT_NEAR(parameters[2], DefaultSignalVarianceSE0Ker, 1e-6);
+    EXPECT_NEAR(parameters[3], DefaultLengthScalePerKer, 1e-6);
+    EXPECT_NEAR(parameters[4], DefaultPeriodLengthPerKer, 1e-6);
+    EXPECT_NEAR(parameters[5], DefaultSignalVariancePerKer, 1e-6);
+    EXPECT_NEAR(parameters[6], DefaultLengthScaleSE1Ker, 1e-6);
+    EXPECT_NEAR(parameters[7], DefaultSignalVarianceSE1Ker, 1e-6);
+
+    EXPECT_NEAR(GPG->GetNumPointsPeriodComputation(), DefaultNumMinPointsForPeriodComputation, 1e-6);
+    EXPECT_NEAR(GPG->GetNumPointsForApproximation(), DefaultNumPointsForApproximation, 1e-6);
+    EXPECT_NEAR(GPG->GetPredictionGain(), DefaultPredictionGain, 1e-6);
+    EXPECT_NEAR(GPG->GetBoolComputePeriod(), DefaultComputePeriod, 1e-6);
 }
 
 int main(int argc, char** argv)
