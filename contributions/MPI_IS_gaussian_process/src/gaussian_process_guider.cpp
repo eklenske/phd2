@@ -529,8 +529,7 @@ std::vector<double> GaussianProcessGuider::GetGPHyperparameters() const
 
 bool GaussianProcessGuider::SetGPHyperparameters(std::vector<double> const &hyperparameters) {
     Eigen::VectorXd hyperparameters_eig = Eigen::VectorXd::Map(&hyperparameters[0], hyperparameters.size());
-
-
+    return false;
 }
 
 double GaussianProcessGuider::GetMinMove() const {
